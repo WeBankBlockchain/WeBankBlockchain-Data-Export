@@ -32,11 +32,13 @@ import com.webank.blockchain.data.export.common.tools.DateUtils;
 import com.webank.blockchain.data.export.common.tools.JacksonUtils;
 import com.webank.blockchain.data.export.common.tools.MethodUtils;
 import com.webank.blockchain.data.export.parser.service.TransactionService;
+import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
 import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock.Block;
 import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock.TransactionObject;
 import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock.TransactionResult;
+import org.fisco.bcos.sdk.v3.codec.datatypes.Type;
 import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.transaction.codec.decode.TransactionDecoderInterface;
 import org.fisco.bcos.sdk.v3.transaction.model.dto.TransactionResponse;
@@ -146,7 +148,7 @@ public class MethodCrawlerHandler {
             TransactionResponse response;
             if (!CollectionUtil.isEmpty(methodMetaInfo.getOutputList())) {
                 response = decoder.decodeReceiptWithValues(abi, methodMetaInfo.getOriginName(), receipt);
-                List<Object> returns = response.getValuesList();
+                List<Type> returns = response.getResults();
                 int i = 0;
                 for (FieldVO fieldVO : methodMetaInfo.getOutputList()) {
                     if (CollectionUtil.isNotEmpty(config.getIgnoreParam())
@@ -159,11 +161,11 @@ public class MethodCrawlerHandler {
                             }
                         }
                     }
-                    if (returns.get(i) instanceof java.util.List){
+                    if (returns.get(i).getValue() instanceof java.util.List){
                         entity.put(fieldVO.getSqlName(), JSONUtil.toJsonStr(returns.get(i)));
                         continue;
                     }
-                    entity.put(fieldVO.getSqlName(), returns.get(i++));
+                    entity.put(fieldVO.getSqlName(), returns.get(i++).getValue());
                 }
             }
             List<FieldVO> fieldVOS = methodMetaInfo.getFieldsList();
